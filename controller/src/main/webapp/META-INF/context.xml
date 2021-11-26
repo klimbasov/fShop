@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <!-- Specify a JDBC datasource -->
+    <Resource name="jdbc/ConnectionPool"
+    auth="Container"
+    type="javax.sql.DataSource"
+    username="root"
+    password="Mp3399578"
+    driverClassName="com.mysql.cj.jdbc.Driver"
+    url="jdbc:mysql://localhost/fShop?serverTimezone=Europe/Moscow&amp;useSSL=false&amp;allowPublicKeyRetrieval=true&amp;useSSL= false"
+    validationQuery="select 1"
+    maxTotal="100"
+    maxIdle="10"/>
+
+</Context>
