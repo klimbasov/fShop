@@ -4,7 +4,7 @@ import com.jwd.fShop.service.domain.User;
 import com.jwd.fShop.service.domain.UserFilter;
 import com.jwd.fShop.service.exception.ServiceException;
 
-import java.util.LinkedList;
+import java.util.List;
 
 public interface UserService {
     boolean setUser(final User user) throws ServiceException;
@@ -13,7 +13,7 @@ public interface UserService {
 
     User getUser(final String userName) throws ServiceException;
 
-    LinkedList<User> getUsers(final UserFilter userFilter) throws ServiceException;
+    List<User> getUsers(final UserFilter userFilter) throws ServiceException;
 
-    int deleteUsers(final LinkedList<Integer> userList) throws ServiceException;
+    int deleteUsers(final List<Integer> userList) throws ServiceException;
 }

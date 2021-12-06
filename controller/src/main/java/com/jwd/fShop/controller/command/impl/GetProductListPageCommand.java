@@ -1,13 +1,14 @@
-package com.jwd.fShop.controller.command.commands;
+package com.jwd.fShop.controller.command.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jwd.fShop.controller.command.Command;
 import com.jwd.fShop.controller.command.Role;
-import com.jwd.fShop.controller.domain.ServicePack;
 import com.jwd.fShop.controller.exception.CommandException;
+import com.jwd.fShop.service.ProductService;
+import com.jwd.fShop.service.ServiceFactory;
 import com.jwd.fShop.service.domain.Product;
 import com.jwd.fShop.service.domain.ProductFilter;
 import com.jwd.fShop.service.domain.ProductType;
-import com.jwd.fShop.service.exception.ServiceException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,19 +16,21 @@ import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.Objects;
 
-public class GetProductListPageCommand extends AbstractCommand implements Command{
+public class GetProductListPageCommand extends AbstractCommand implements Command {
 
-    private static final Role role = Role.UNREGISTERED_USER;
+    private static final Role ROLE = Role.UNREGISTERED_USER;
+    private ProductService productService = ServiceFactory.getInstance().getProductService();;
 
-    public GetProductListPageCommand(ServicePack servicePack) {
-        super(servicePack, Role.UNREGISTERED_USER);
+    public GetProductListPageCommand() {
+        super(Role.UNREGISTERED_USER);
     }
 
     @Override
     public void execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
         LinkedList<Product> products;
         int pageQuantity;
-        int pageNumber = Integer.parseInt(req.getParameter("pageNum"));
+        String parameterNum = req.getParameter("pageNum");
+        int pageNumber = parameterNum.isEmpty() ? 1 : Integer.parseInt(parameterNum);
         String jsonProductList;
         PrintWriter out;
         ObjectMapper objectMapper = new ObjectMapper();
@@ -37,8 +40,8 @@ public class GetProductListPageCommand extends AbstractCommand implements Comman
                     req.getParameter("productType"),
                     req.getParameter("lowPrice"),
                     req.getParameter("highPrice"));
-            products = servicePack.getProductService().getProductsPage(productFilter, pageNumber);
-            pageQuantity = servicePack.getProductService().getPageQuantity(productFilter);
+            products = productService.getProductsPage(productFilter, pageNumber);
+            pageQuantity = productService.getPageQuantity(productFilter);
             if(products.isEmpty()){
                 resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
             }
@@ -61,10 +64,10 @@ public class GetProductListPageCommand extends AbstractCommand implements Comman
 
     private ProductFilter createProductFilter(String subName, String productType, String lowPrice, String highPrice) throws IllegalArgumentException{
         ProductFilter.Builder builder = new ProductFilter.Builder();
-        float lowPriceVal,
-            highPriceVal;
-        if(Objects.nonNull(subName))
+        float lowPriceVal, highPriceVal;
+        if(Objects.nonNull(subName)) {
             builder.setName(subName);
+        }
         if(Objects.nonNull(productType))
             builder.setProductType(ProductType.valueOf(productType));
         if(Objects.nonNull(lowPrice))

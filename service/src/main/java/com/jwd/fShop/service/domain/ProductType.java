@@ -3,10 +3,10 @@ package com.jwd.fShop.service.domain;
 import com.sun.istack.internal.NotNull;
 
 public enum ProductType {
-    ROD(ProductParams.rodParams),
-    LINE(ProductParams.lineParams),
-    HOOK(ProductParams.hookParams),
-    ANY(ProductParams.anyParams);
+    ROD(new String[]{"length", "material", "test"}),
+    LINE(new String[]{"length", "material", "diameter"}),
+    HOOK(new String[]{"weight", "material"}),
+    ANY(new String[]{});
 
     @NotNull
     final String[] paramsArray;
@@ -14,11 +14,4 @@ public enum ProductType {
     ProductType(String[] paramsArray){
         this.paramsArray = paramsArray;
     }
-}
-
-class ProductParams{
-    static final String[] rodParams = {"length", "material", "test"};
-    static final String[] lineParams = {"length", "material", "diameter"};
-    static final String[] hookParams = {"weight", "material"};
-    static final String[] anyParams = {};
 }

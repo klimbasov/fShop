@@ -11,13 +11,13 @@ public class DaoFactory {
     private final OrderDao orderDao;
     private final ProductDao productDao;
 
-    private DaoFactory() throws FatalDaoException {
+    private DaoFactory() {
         userDao = new UserDaoImpl();
         orderDao = null;
         productDao = new ProductDaoImpl();
     }
 
-    public static DaoFactory getInstance() throws FatalDaoException {
+    public static DaoFactory getInstance() {
         if(Objects.isNull(INSTANCE)){
             INSTANCE = new DaoFactory();
         }

@@ -1,16 +1,15 @@
-package com.jwd.fShop.controller.command.commands;
+package com.jwd.fShop.controller.command.impl;
 
+import com.jwd.fShop.controller.command.Command;
 import com.jwd.fShop.controller.command.Role;
-import com.jwd.fShop.controller.domain.ServicePack;
 import com.jwd.fShop.controller.exception.CommandException;
-import com.jwd.fShop.controller.exception.InvalidSessionException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class ShowAdministrationPageCommand extends AbstractCommand implements Command{
-    public ShowAdministrationPageCommand(ServicePack servicePack) {
-        super(servicePack, Role.ADMIN);
+public class ShowAdministrationPageCommand extends AbstractCommand implements Command {
+    public ShowAdministrationPageCommand() {
+        super(Role.ADMIN);
     }
 
     @Override

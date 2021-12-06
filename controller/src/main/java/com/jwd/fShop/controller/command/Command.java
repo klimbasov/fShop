@@ -1,4 +1,4 @@
-package com.jwd.fShop.controller.command.commands;
+package com.jwd.fShop.controller.command;
 
 import com.jwd.fShop.controller.command.Role;
 import com.jwd.fShop.controller.exception.CommandException;

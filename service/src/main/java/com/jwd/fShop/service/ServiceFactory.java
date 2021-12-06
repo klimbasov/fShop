@@ -13,13 +13,13 @@ public class ServiceFactory {
     private final UserService userService;
     private final OrderServise orderService;
 
-    private ServiceFactory() throws FatalServiceException {
+    private ServiceFactory() {
         productService = new ProductServiceImpl();
         userService = new UserServiceImpl();
         orderService = null;
     }
 
-    public static ServiceFactory getInstance() throws FatalServiceException {
+    public static ServiceFactory getInstance() {
         if(Objects.isNull(INSTANCE)){
             INSTANCE = new ServiceFactory();
         }

@@ -1,54 +1,63 @@
 package com.jwd.fShop.controller.command;
 
-import com.jwd.fShop.controller.command.commands.*;
-import com.jwd.fShop.controller.domain.ServicePack;
+import com.jwd.fShop.controller.command.impl.*;
 
 import java.util.HashMap;
+
+import static com.jwd.fShop.controller.command.CommandMap.CommandAliases.*;
 
 public class CommandMap {
     private HashMap<String, Command> commandMap;
 
-    public CommandMap(final ServicePack servicePack){
+    public CommandMap() {
         commandMap = new HashMap<>();
 
-        commandMap.put(CommandAliases.DefaultAlias, new ShowDefaultPageCommand(servicePack));
-        commandMap.put(CommandAliases.ShowDefaultPageCommandAlias, new ShowDefaultPageCommand(servicePack));
-        commandMap.put(CommandAliases.ShowProductInfoPageCommandAlias, new ShowProductInfoPageCommand(servicePack));
-        commandMap.put(CommandAliases.ShowProductListPageCommandAlias, new ShowProductListPageCommand(servicePack));
-        commandMap.put(CommandAliases.GetProductListPageCommandAlias, new GetProductListPageCommand(servicePack));
-        commandMap.put(CommandAliases.ShowAddProductPageAlias, new ShowAddProductPageCommand(servicePack));
-        commandMap.put(CommandAliases.ShowAdministrationPageAlias, new ShowAdministrationPageCommand(servicePack));
-        commandMap.put(CommandAliases.AddProductCommandAlias, new AddProductCommand(servicePack));
-        commandMap.put(CommandAliases.ShowAuthenticationPageAlias, new ShowAuthenticationPageCommand(servicePack));
-        commandMap.put(CommandAliases.ShowRegistrationPageAlias, new ShowRegistrationPageCommand(servicePack));
-        commandMap.put(CommandAliases.AuthenticationAlias, new AuthenticateUserCommand(servicePack));
-        commandMap.put(CommandAliases.RegistrationAlias, new RegisterUserCommand(servicePack));
-        commandMap.put(CommandAliases.LogoutAlias, new LogoutUserCommand(servicePack));
-        commandMap.put(CommandAliases.GetProductAlias, new GetProductCommand(servicePack));
+        commandMap.put(DEFAULT_ALIAS.getAlias(), new ShowDefaultPageCommand());
+        commandMap.put(SHOW_DEFAULT_PAGE_COMMAND_ALIAS.getAlias(), new ShowDefaultPageCommand());
+        commandMap.put(SHOW_PRODUCT_INFO_PAGE_COMMAND_ALIAS.getAlias(), new ShowProductInfoPageCommand());
+        commandMap.put(SHOW_PRODUCT_LIST_PAGE_COMMAND_ALIAS.getAlias(), new ShowProductListPageCommand());
+        commandMap.put(GetProductListPageCommandAlias.getAlias(), new GetProductListPageCommand());
+        commandMap.put(ShowAddProductPageAlias.getAlias(), new ShowAddProductPageCommand());
+        commandMap.put(ShowAdministrationPageAlias.getAlias(), new ShowAdministrationPageCommand());
+        commandMap.put(AddProductCommandAlias.getAlias(), new AddProductCommand());
+        commandMap.put(ShowAuthenticationPageAlias.getAlias(), new ShowAuthenticationPageCommand());
+        commandMap.put(ShowRegistrationPageAlias.getAlias(), new ShowRegistrationPageCommand());
+        commandMap.put(AuthenticationAlias.getAlias(), new AuthenticateUserCommand());
+        commandMap.put(RegistrationAlias.getAlias(), new RegisterUserCommand());
+        commandMap.put(LogoutAlias.getAlias(), new LogoutUserCommand());
+        commandMap.put(GetProductAlias.getAlias(), new GetProductCommand());
 
     }
 
-    public Command getCommandByAlias(String alias){
+    public Command getCommandByAlias(String alias) {
         return commandMap.get(alias);
     }
-}
 
-class CommandAliases {
-    static String DefaultAlias = null;
-    static String ShowDefaultPageCommandAlias = "ShowDefaultPage";
-    static String ShowProductInfoPageCommandAlias = "ShowProductInfoPage";
-    static String ShowProductListPageCommandAlias = "ShowProductListPage";
-    static String ShowAddProductPageAlias = "ShowAddProductPage";
-    static String ShowAdministrationPageAlias = "ShowAdministrationPage";
+    enum CommandAliases {
+        DEFAULT_ALIAS(null),
+        SHOW_DEFAULT_PAGE_COMMAND_ALIAS("ShowDefaultPage"),
+        SHOW_PRODUCT_INFO_PAGE_COMMAND_ALIAS("ShowProductInfoPage"),
+        SHOW_PRODUCT_LIST_PAGE_COMMAND_ALIAS("ShowProductListPage"),
+        ShowAddProductPageAlias("ShowAddProductPage"),
+        ShowAdministrationPageAlias("ShowAdministrationPage"),
 
+        GetProductListPageCommandAlias("GetProductListPage"),
+        AddProductCommandAlias("AddProduct"),
+        ShowRegistrationPageAlias("ShowRegistrationPage"),
+        ShowAuthenticationPageAlias("ShowAuthenticationPage"),
+        AuthenticationAlias("Authenticate"),
+        RegistrationAlias("Register"),
+        LogoutAlias("Logout"),
+        GetProductAlias("GetProduct");
 
-    static String GetProductListPageCommandAlias = "GetProductListPage";
-    static String AddProductCommandAlias = "AddProduct";
-    static String ShowRegistrationPageAlias = "ShowRegistrationPage";
-    static String ShowAuthenticationPageAlias = "ShowAuthenticationPage";
-    static String AuthenticationAlias = "Authenticate";
-    static String RegistrationAlias = "Register";
-    static String LogoutAlias = "Logout";
-    static String GetProductAlias = "GetProduct";
+        private String alias;
 
+        CommandAliases(String alias) {
+            this.alias = alias;
+        }
+
+        public String getAlias() {
+            return alias;
+        }
+    }
 }

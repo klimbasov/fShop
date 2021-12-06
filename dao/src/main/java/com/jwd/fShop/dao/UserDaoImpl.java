@@ -1,20 +1,19 @@
 package com.jwd.fShop.dao;
 
 import com.jwd.fShop.dao.connectionPool.ConnectionPool;
-import com.jwd.fShop.dao.domain.*;
+import com.jwd.fShop.dao.domain.User;
+import com.jwd.fShop.dao.domain.UserFilter;
 import com.jwd.fShop.dao.exception.DaoException;
-import com.jwd.fShop.dao.exception.FatalDaoException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-public class UserDaoImpl implements UserDao{
+import static java.util.Objects.nonNull;
+
+public class UserDaoImpl implements UserDao {
     Map<Integer, String> roleMap = new HashMap<>();
 
     private static int PRODUCT_FIELDS_QUANTITY = 5;
@@ -28,12 +27,8 @@ public class UserDaoImpl implements UserDao{
 
     private ConnectionPool connectionPool;
 
-    public UserDaoImpl() throws FatalDaoException {
-        try {
-            connectionPool = ConnectionPool.getInstance();
-        }catch (Exception exception){
-            throw new FatalDaoException("in ProductDaoImpl: getting connection pool fault.", exception);
-        }
+    public UserDaoImpl() {
+        connectionPool = ConnectionPool.getInstance();
     }
 
     @Override
@@ -41,15 +36,15 @@ public class UserDaoImpl implements UserDao{
         Connection connection;
         PreparedStatement statement;
         boolean result;
-        if(Objects.nonNull(user)) {
-            try{
+        if (nonNull(user)) {
+            try {
                 connection = connectionPool.getConnection();
-            }catch (Exception exception){
+            } catch (Exception exception) {
                 throw new DaoException("in ProductDaoImpl: in setUser(User) while getting connection from connection pool", exception);
             }
             try {
                 statement = connection.prepareStatement(SQL_INSERT_SINGLE_ITEM);
-            }catch (Exception exception){
+            } catch (Exception exception) {
                 throw new DaoException("in ProductDaoImpl: in setUser(User) while getting prepared statement", exception);
             }
             try {
@@ -59,13 +54,13 @@ public class UserDaoImpl implements UserDao{
                 statement.setDate(4, user.getRegistrationDate());
                 statement.setTime(5, user.getRegistrationTime());
 
-                result = statement.executeUpdate()== 0 ? false : true;
-            }catch (Exception exception){
+                result = statement.executeUpdate() == 0 ? false : true;
+            } catch (Exception exception) {
                 throw new DaoException("in ProductDaoImpl: in setUser(User) while setting prepared statement parameters", exception);
-            }finally {
+            } finally {
                 connectionPool.retrieveConnection(connection);
             }
-            return  result;
+            return result;
         }
         return false;
     }
@@ -77,9 +72,9 @@ public class UserDaoImpl implements UserDao{
         PreparedStatement statement;
         ResultSet resultSet;
 
-        try{
+        try {
             connection = connectionPool.getConnection();
-        }catch (Exception exception){
+        } catch (Exception exception) {
             throw new DaoException("in ProductDaoImpl: in getUser(String) while getting connection from connection pool", exception);
         }
         try {
@@ -89,7 +84,7 @@ public class UserDaoImpl implements UserDao{
 
             resultSet = statement.executeQuery();
 
-            if(resultSet.next()){
+            if (resultSet.next()) {
                 user = new User.Builder()
                         .setId(resultSet.getInt("ID"))
                         .setUserName(resultSet.getNString("userName"))
@@ -99,9 +94,9 @@ public class UserDaoImpl implements UserDao{
                         .setRole(resultSet.getInt("Role_ID"))
                         .build();
             }
-        }catch (Exception exception){
+        } catch (Exception exception) {
             throw new DaoException("in ProductDaoImpl: in getUser(String) while getting prepared statement", exception);
-        }finally {
+        } finally {
             connectionPool.retrieveConnection(connection);
         }
 
@@ -116,9 +111,9 @@ public class UserDaoImpl implements UserDao{
         LinkedList<User> users = new LinkedList<>();
         ResultSet resultSet;
 
-        try{
+        try {
             connection = connectionPool.getConnection();
-        }catch (Exception exception){
+        } catch (Exception exception) {
             throw new DaoException("in ProductDaoImpl: in getUsers(UserFilter) while getting connection from connection pool", exception);
         }
         try {
@@ -128,7 +123,7 @@ public class UserDaoImpl implements UserDao{
 
             resultSet = statement.executeQuery();
 
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 users.add(new User.Builder()
                         .setId(resultSet.getInt("ID"))
                         .setUserName(resultSet.getNString("userName"))
@@ -138,9 +133,9 @@ public class UserDaoImpl implements UserDao{
                         .setRole(resultSet.getInt("Role_ID"))
                         .build());
             }
-        }catch (Exception exception){
+        } catch (Exception exception) {
             throw new DaoException("in ProductDaoImpl: in getUsers(UserFilter) while getting prepared statement", exception);
-        }finally {
+        } finally {
             connectionPool.retrieveConnection(connection);
         }
         return users;
@@ -148,135 +143,154 @@ public class UserDaoImpl implements UserDao{
 
     @Override
     public boolean deleteUser(int id) throws DaoException {
-        Connection connection;
-        PreparedStatement statement;
-        boolean result;
-
-        try{
-            connection = connectionPool.getConnection();
-        }catch (Exception exception){
-            throw new DaoException("in ProductDaoImpl: in deleteUser(int) while getting connection from connection pool", exception);
-        }
-
+        Connection connection = null;
+        PreparedStatement statement = null;
         try {
+            connection = connectionPool.getConnection();
             statement = connection.prepareStatement(SQL_DELETE_ITEM);
-
             statement.setInt(1, id);
 
-            result = statement.executeUpdate()== 0 ? false : true;
-        }catch (Exception exception){
+            return isSuccessfulResult(statement.executeUpdate());
+        } catch (Exception exception) {
             throw new DaoException("in ProductDaoImpl: in deleteUser(int) while getting prepared statement", exception);
-        }finally {
+        } finally {
+            closeAutoCloseable(statement);
             connectionPool.retrieveConnection(connection);
         }
-        return  result;
     }
 
     @Override
-    public int deleteUsers(LinkedList<Integer> listId) throws DaoException {
+    public int deleteUsers(List<Integer> listId) throws DaoException {
         int result = 0;
-        if(Objects.isNull(listId)){
-
-            for(Integer id : listId){
-                if(deleteUser(id)){
-                    ++result;
-                }
+        Connection connection = null;
+        PreparedStatement statement = null;
+        try {
+            connection = connectionPool.getConnection();
+            connection.setAutoCommit(false);
+            for (Integer id : listId) {
+                statement = connection.prepareStatement(SQL_DELETE_ITEM);
+                statement.setInt(1, id);
+                statement.executeUpdate();
+                ++result;
             }
+            connection.commit();
+            return result;
+        } catch (Exception exception) {
+            throw new DaoException("in ProductDaoImpl: in deleteUser(int) while getting prepared statement", exception);
+        } finally {
+            closeAutoCloseable(statement);
+            connectionPool.retrieveConnection(connection);
         }
-        return result;
     }
 
-    private String getMultipleSelectSQL(final UserFilter userFilter){
+    private String getMultipleSelectSQL(final UserFilter userFilter) {
         boolean isNotFirstElement = false;
         String sql = SQL_SELECT_MULTIPLE_ITEMS;
-        if(userFilter.isUserSubname()){
+        if (userFilter.isUserSubname()) {
             sql += "WHERE userName LIKE '%?%'";
             isNotFirstElement = true;
         }
-        if(userFilter.isId()){
-            if(isNotFirstElement)
+        if (userFilter.isId()) {
+            if (isNotFirstElement)
                 sql += " AND";
             else
                 sql += " WHERE";
             sql += " ID=?";
             isNotFirstElement = true;
         }
-        if(userFilter.isSubHashPass()){
-            if(isNotFirstElement)
+        if (userFilter.isSubHashPass()) {
+            if (isNotFirstElement)
                 sql += " AND";
             else
                 sql += " WHERE";
             sql += "WHERE PasswordHash LIKE '%?%'";
             isNotFirstElement = true;
         }
-        if(userFilter.isHighDate()){
-            if(isNotFirstElement)
+        if (userFilter.isHighDate()) {
+            if (isNotFirstElement)
                 sql += " AND";
             else
                 sql += " WHERE";
             sql += "registrationDate <= ? ";
             isNotFirstElement = true;
         }
-        if(userFilter.isLowDate()){
-            if(isNotFirstElement)
+        if (userFilter.isLowDate()) {
+            if (isNotFirstElement)
                 sql += " AND";
             else
                 sql += " WHERE";
             sql += "registrationDate >= ? ";
         }
-        if(userFilter.isHighTime()){
-            if(isNotFirstElement)
+        if (userFilter.isHighTime()) {
+            if (isNotFirstElement)
                 sql += " AND";
             else
                 sql += " WHERE";
             sql += "registrationTime <= ? ";
             isNotFirstElement = true;
         }
-        if(userFilter.isLowTime()){
-            if(isNotFirstElement)
+        if (userFilter.isLowTime()) {
+            if (isNotFirstElement)
                 sql += " AND";
             else
                 sql += " WHERE";
             sql += "registrationTime >= ? ";
         }
-        if(userFilter.isRole()){
-            if(isNotFirstElement)
+        if (userFilter.isRole()) {
+            if (isNotFirstElement)
                 sql += " AND";
             else
                 sql += " WHERE";
             sql += "Role_ID == ? ";
         }
-        sql+=";";
+        sql += ";";
 
         return sql;
     }
 
-    private PreparedStatement setSelectParams(final PreparedStatement preparedStatement, final UserFilter userFilter)throws Exception{
+    private PreparedStatement setSelectParams(final PreparedStatement preparedStatement, final UserFilter userFilter) throws Exception {
         int counter = 1;
-        if(userFilter.isUserSubname()){
+        if (userFilter.isUserSubname()) {
             preparedStatement.setString(counter++, userFilter.getUserSubname());
         }
-        if(userFilter.isId()){
+        if (userFilter.isId()) {
             preparedStatement.setInt(counter++, userFilter.getId());
         }
-        if(userFilter.isSubHashPass()){
+        if (userFilter.isSubHashPass()) {
             preparedStatement.setString(counter++, userFilter.getSubHashPass());
         }
-        if(userFilter.isHighDate()){
+        if (userFilter.isHighDate()) {
             preparedStatement.setDate(counter++, userFilter.getHighDate());
         }
-        if(userFilter.isLowDate()){
+        if (userFilter.isLowDate()) {
             preparedStatement.setDate(counter++, userFilter.getLowDate());
         }
-        if(userFilter.isHighTime()){
+        if (userFilter.isHighTime()) {
             preparedStatement.setTime(counter++, userFilter.getHighTime());
         }
-        if(userFilter.isLowTime()){
+        if (userFilter.isLowTime()) {
             preparedStatement.setTime(counter++, userFilter.getLowTime());
         }
-        if(userFilter.isRole()){
+        if (userFilter.isRole()) {
             preparedStatement.setInt(counter++, userFilter.getRole());
         }
         return preparedStatement;
+    }
+
+    // todo export to abstract class for example
+    protected void closeAutoCloseable(AutoCloseable... autoCloseables) {
+        for (AutoCloseable autoCloseable : autoCloseables) {
+            if (nonNull(autoCloseable)) {
+                try {
+                    autoCloseable.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private boolean isSuccessfulResult(int result) throws SQLException {
+        return result != 0;
     }
 }
