@@ -1,25 +1,25 @@
-package com.jwd.fShop.controller.command.commands;
+package com.jwd.fShop.controller.command.impl;
 
+import com.jwd.fShop.controller.command.Command;
 import com.jwd.fShop.controller.command.Role;
-import com.jwd.fShop.controller.domain.ServicePack;
 import com.jwd.fShop.controller.exception.CommandException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class ShowProductListPageCommand extends AbstractCommand implements Command {
+public class ShowAddProductPageCommand extends AbstractCommand implements Command {
 
-    private static final Role role = Role.UNREGISTERED_USER;
+    private static final Role role = Role.ADMIN;
 
-    public ShowProductListPageCommand(ServicePack servicePack) {
-        super(servicePack, role);
+    public ShowAddProductPageCommand() {
+        super(Role.ADMIN);
     }
+
 
     @Override
     public void execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
         try {
-            super.validateSessionRole((String) req.getSession().getAttribute("role"));
-            req.getRequestDispatcher("WEB-INF/pages/table.jsp").forward(req,resp);
+            req.getRequestDispatcher("WEB-INF/pages/AddProductPage.jsp").forward(req,resp);
         }catch (Exception exception){
             throw new CommandException("in " + this.getClass().getName() + " : in execute() while forwarding request", exception);
         }

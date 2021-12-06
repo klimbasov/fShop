@@ -5,6 +5,7 @@ import com.jwd.fShop.dao.domain.ProductFilter;
 import com.jwd.fShop.dao.exception.DaoException;
 
 import java.util.LinkedList;
+import java.util.Optional;
 
 public interface ProductDao {
     boolean setProduct(final Product product)throws DaoException;
@@ -13,7 +14,7 @@ public interface ProductDao {
 
     boolean deleteProduct(final int id)throws DaoException;
 
-    Product getProduct(int id) throws DaoException;
+    Optional<Product> getProduct(int id) throws DaoException;
 
     LinkedList<Product> getProductListPage(final ProductFilter productFilter, int pageSize, int pageNumber)throws DaoException;
 

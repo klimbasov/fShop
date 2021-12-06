@@ -10,6 +10,7 @@ import com.jwd.fShop.dao.exception.FatalDaoException;
 import java.sql.*;
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Optional;
 
 public class ProductDaoImpl implements ProductDao{
     private static int PRODUCT_FIELDS_QUANTITY = 5;
@@ -24,12 +25,8 @@ public class ProductDaoImpl implements ProductDao{
 
     private ConnectionPool connectionPool;
 
-    public ProductDaoImpl() throws FatalDaoException {
-        try {
-            connectionPool = ConnectionPool.getInstance();
-        }catch (Exception exception){
-            throw new FatalDaoException("in ProductDaoImpl: getting connection pool fault.", exception);
-        }
+    public ProductDaoImpl() {
+        connectionPool = ConnectionPool.getInstance();
     }
 
     @Override
@@ -132,19 +129,14 @@ public class ProductDaoImpl implements ProductDao{
     }
 
     @Override
-    public Product getProduct(int id) throws DaoException {
-        Connection connection;
+    public Optional<Product> getProduct(int id) throws DaoException {
+        Connection connection = null;
 
         PreparedStatement statement;
         Product product = null;
         ResultSet resultSet;
-
-        try{
-            connection = connectionPool.getConnection();
-        }catch (Exception exception){
-            throw new DaoException("in ProductDaoImpl: in getProductList(ProductFilter) while getting connection from connection pool", exception);
-        }
         try {
+            connection = connectionPool.getConnection();
             statement = connection.prepareStatement(SQL_SELECT_SINGLE_ITEM_BY_ID);
 
             statement.setInt(1, id);
@@ -161,13 +153,13 @@ public class ProductDaoImpl implements ProductDao{
                         .setParams(resultSet.getString("params"))
                         .build();
             }
+
+            return Optional.ofNullable(product);
         }catch (Exception exception){
             throw new DaoException("in ProductDaoImpl: in getProductList(ProductFilter) while getting prepared statement", exception);
         }finally {
             connectionPool.retrieveConnection(connection);
         }
-
-        return product;
     }
 
     @Override

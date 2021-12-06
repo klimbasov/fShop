@@ -12,6 +12,7 @@ import com.jwd.fShop.service.exception.ServiceException;
 
 import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Optional;
 
 public class ProductServiceImpl implements ProductService {
     static private final int DEFAULT_PAGE_SIZE = 20;
@@ -19,13 +20,9 @@ public class ProductServiceImpl implements ProductService {
     private ProductDao productStorage;
 
 
-    public ProductServiceImpl() throws FatalServiceException{
-        try {
-            pageSize = DEFAULT_PAGE_SIZE;
-            productStorage = DaoFactory.getInstance().getProductDao();
-        } catch (FatalDaoException e) {
-            throw new FatalServiceException("in " + this.getClass().getName() + " while setting productDao", e);
-        }
+    public ProductServiceImpl() {
+        pageSize = DEFAULT_PAGE_SIZE;
+        productStorage = DaoFactory.getInstance().getProductDao();
     }
 
     @Override
@@ -33,7 +30,7 @@ public class ProductServiceImpl implements ProductService {
         boolean result;
         try {
             result = productStorage.setProduct(daoProductFromProduct(product));
-        }catch (DaoException exception){
+        } catch (DaoException exception) {
             throw new ServiceException("in ProductServiceImpl: in addProduct(Product) while setting product in dao", exception);
         }
 
@@ -46,63 +43,61 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public LinkedList<Product> getProductsPage(final ProductFilter productFilter, int pageNumber) throws ServiceException{
+    public LinkedList<Product> getProductsPage(final ProductFilter productFilter, int pageNumber) throws ServiceException {
         LinkedList<com.jwd.fShop.dao.domain.Product> daoProductList;
         com.jwd.fShop.dao.domain.ProductFilter daoProductFilter = createDaoProductFilter(productFilter);
         try {
             daoProductList = productStorage.getProductListPage(daoProductFilter, pageSize, pageNumber);
-        }catch (DaoException exception){
+        } catch (DaoException exception) {
             throw new ServiceException("in ProductServiceImpl: in getProduct(ProductFilter) while getting products from dao", exception);
         }
         LinkedList<Product> productList = new LinkedList<>();
-        for(com.jwd.fShop.dao.domain.Product daoProduct: daoProductList){
-            productList.add(productFromDaoProduct(daoProduct));
+        for (com.jwd.fShop.dao.domain.Product daoProduct : daoProductList) {
+//            productList.add(productFromDaoProduct(daoProduct)); // change to optional todo
         }
         return productList;
     }
 
     @Override
-    public Product getProduct(int id) throws ServiceException {
-        Product product = null;
-        try{
-            product = productFromDaoProduct(productStorage.getProduct(id));
+    public Optional<Product> getProduct(int id) throws ServiceException {
+        try {
+            return productFromDaoProduct(productStorage.getProduct(id));
         } catch (DaoException exception) {
             throw new ServiceException("In " + this.getClass().getName() + " in getProduct(int) while getting product", exception);
         }
-        return product;
     }
 
-    private com.jwd.fShop.dao.domain.ProductFilter createDaoProductFilter(ProductFilter productFilter){
+    private com.jwd.fShop.dao.domain.ProductFilter createDaoProductFilter(ProductFilter productFilter) {
         com.jwd.fShop.dao.domain.ProductFilter.Builder builder = new com.jwd.fShop.dao.domain.ProductFilter.Builder();
-        if(productFilter.isId())
+        if (productFilter.isId())
             builder.setId(productFilter.getId());
-        if(productFilter.isName())
+        if (productFilter.isName())
             builder.setName(productFilter.getName());
-        if(productFilter.isLowPrice())
+        if (productFilter.isLowPrice())
             builder.setPriceRange(productFilter.getLowPrice(), productFilter.getHighPrice());
-        if(productFilter.isProductType())
+        if (productFilter.isProductType())
             builder.setProductType(com.jwd.fShop.dao.domain.ProductType.valueOf(productFilter.getProductType().name()));
         return builder.build();
     }
 
-    private Product productFromDaoProduct(com.jwd.fShop.dao.domain.Product daoProduct){
+    private Optional<Product> productFromDaoProduct(Optional<com.jwd.fShop.dao.domain.Product> daoProduct) {
         Product product = null;
-        if(Objects.nonNull(daoProduct)){
+        if (daoProduct.isPresent()) {
             product = new Product.Builder()
-                    .setId(daoProduct.getId())
-                    .setName(daoProduct.getName())
-                    .setPrice(daoProduct.getPrice())
-                    .setQuantity(daoProduct.getQuantity())
-                    .setProductType(ProductType.valueOf(daoProduct.getProductType().name()))
-                    .setParams(daoProduct.getParameters())
+                    .setId(daoProduct.get().getId())
+                    .setName(daoProduct.get().getName())
+                    .setPrice(daoProduct.get().getPrice())
+                    .setQuantity(daoProduct.get().getQuantity())
+                    .setProductType(ProductType.valueOf(daoProduct.get().getProductType().name()))
+                    .setParams(daoProduct.get().getParameters())
                     .build();
         }
-        return product;
+        return Optional.ofNullable(product);
     }
 
-    private com.jwd.fShop.dao.domain.Product daoProductFromProduct(Product product){
+    private com.jwd.fShop.dao.domain.Product daoProductFromProduct(Product product) {
         com.jwd.fShop.dao.domain.Product daoProduct = null;
-        if(Objects.nonNull(product)){
+        if (Objects.nonNull(product)) {
             daoProduct = new com.jwd.fShop.dao.domain.Product.
                     Builder().
                     setId(product.getId()).

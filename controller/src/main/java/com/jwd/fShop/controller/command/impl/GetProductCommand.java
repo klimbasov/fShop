@@ -1,42 +1,43 @@
-package com.jwd.fShop.controller.command.commands;
+package com.jwd.fShop.controller.command.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jwd.fShop.controller.command.Command;
 import com.jwd.fShop.controller.command.Role;
-import com.jwd.fShop.controller.domain.ServicePack;
 import com.jwd.fShop.controller.exception.CommandException;
+import com.jwd.fShop.service.ProductService;
+import com.jwd.fShop.service.ServiceFactory;
 import com.jwd.fShop.service.domain.Product;
-import com.jwd.fShop.service.domain.User;
-import com.jwd.fShop.service.exception.ServiceException;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
-import java.util.LinkedList;
 import java.util.Objects;
+import java.util.Optional;
 
-public class GetProductCommand extends AbstractCommand implements Command{
-    public GetProductCommand(ServicePack servicePack) {
-        super(servicePack, Role.UNREGISTERED_USER);
+public class GetProductCommand extends AbstractCommand implements Command {
+
+    private final ProductService productService = ServiceFactory.getInstance().getProductService();
+
+    public GetProductCommand() {
+        super(Role.UNREGISTERED_USER);
     }
 
     @Override
     public void execute(HttpServletRequest req, HttpServletResponse resp) throws CommandException {
         int productId = Integer.parseInt(req.getParameter("product_id"));
-        Product product = null;
         String jsonProductList;
         PrintWriter out;
         ObjectMapper objectMapper = new ObjectMapper();
-        try{
-            product = this.servicePack.getProductService().getProduct(productId);
-            if(Objects.nonNull(product)){
-                jsonProductList = objectMapper.writeValueAsString(product);
+        try {
+            Optional<Product> productOptional = productService.getProduct(productId);
+            if (productOptional.isPresent()) {
+                jsonProductList = objectMapper.writeValueAsString(productOptional.get());
                 out = resp.getWriter();
                 resp.setContentType("application/json");
                 resp.setCharacterEncoding("UTF-8");
                 out.print(jsonProductList);
                 out.flush();
-            }else {
+            } else {
                 resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
             }
         } catch (Exception exception) {

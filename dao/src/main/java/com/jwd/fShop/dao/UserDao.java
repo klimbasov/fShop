@@ -5,6 +5,7 @@ import com.jwd.fShop.dao.domain.UserFilter;
 import com.jwd.fShop.dao.exception.DaoException;
 
 import java.util.LinkedList;
+import java.util.List;
 
 public interface UserDao {
     boolean setUser(final User user) throws DaoException;
@@ -15,7 +16,7 @@ public interface UserDao {
 
     boolean deleteUser(int id) throws DaoException;
 
-    int deleteUsers(LinkedList<Integer> listId) throws DaoException;
+    int deleteUsers(List<Integer> listId) throws DaoException;
 
 
 }

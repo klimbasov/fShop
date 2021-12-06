@@ -10,7 +10,8 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Objects;
 
-public class RoleFilter implements javax.servlet.Filter {
+public class RoleFilter implements Filter {
+
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpSession session = ((HttpServletRequest)servletRequest).getSession();
@@ -22,6 +23,6 @@ public class RoleFilter implements javax.servlet.Filter {
 
     @Override
     public void destroy() {
-        javax.servlet.Filter.super.destroy();
+
     }
 }

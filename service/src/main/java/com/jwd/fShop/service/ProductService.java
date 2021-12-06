@@ -6,6 +6,7 @@ import com.jwd.fShop.service.domain.ProductFilter;
 import com.jwd.fShop.service.exception.ServiceException;
 
 import java.util.LinkedList;
+import java.util.Optional;
 
 public interface ProductService {
 
@@ -15,5 +16,5 @@ public interface ProductService {
 
     int getPageQuantity(final ProductFilter productFilter) throws DaoException;
 
-    Product getProduct(int id) throws ServiceException;
+    Optional<Product> getProduct(int id) throws ServiceException;
 }
