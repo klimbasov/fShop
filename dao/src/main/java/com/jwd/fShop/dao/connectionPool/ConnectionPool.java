@@ -21,7 +21,7 @@ public class ConnectionPool {
 
     private static ConnectionPool INSTANCE;
 
-    public static ConnectionPool getInstance(){
+    public static synchronized ConnectionPool getInstance(){
         return Objects.isNull(INSTANCE) ? new ConnectionPool() : INSTANCE;
     }
     private ConnectionPool() {

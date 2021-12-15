@@ -8,9 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public interface UserDao {
-    boolean setUser(final User user) throws DaoException;
+    User setUser(final User user) throws DaoException;
 
-    User getUser(final String userName) throws DaoException;
+    User getUser(final User user) throws DaoException;
 
     LinkedList<User> getUsers(final UserFilter userFilter) throws DaoException;
 
@@ -18,5 +18,7 @@ public interface UserDao {
 
     int deleteUsers(List<Integer> listId) throws DaoException;
 
-
+    default boolean hasSuchUser(final UserFilter userFilter) throws DaoException {
+        return getUsers(userFilter).isEmpty();
+    }
 }

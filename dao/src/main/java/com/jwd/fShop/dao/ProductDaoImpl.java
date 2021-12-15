@@ -12,6 +12,8 @@ import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 
+import static java.lang.Math.ceil;
+
 public class ProductDaoImpl implements ProductDao{
     private static int PRODUCT_FIELDS_QUANTITY = 5;
     private static final String SQL_INSERT_SINGLE_ITEM = "INSERT INTO productsTable (name, quantity, productType, price, params) Values (?, ?, ?, ?, ?)";
@@ -21,7 +23,7 @@ public class ProductDaoImpl implements ProductDao{
     private static final String SQL_SELECT_SINGLE_ITEM_BY_ID = "SELECT id, name, price, quantity, productType, params FROM productsTable WHERE id = ?";
     private static final String SQL_SELECT_LIMIT = " LIMIT ?, ?";
     private static final String SQL_UPDATE_ITEM_BY_ID = "UPDATE productsTable SET (name = '?', price = ?, quantity = ?, productType = '?', params = '?') WHERE id=?;";
-    private static final String SQL_GET_PAGE_QUANTITY = "SELECT COUNT(*) FROM  productsTable";
+    private static final String SQL_GET_PAGE_QUANTITY = "SELECT COUNT(*) FROM  productsTable;";
 
     private ConnectionPool connectionPool;
 
@@ -129,7 +131,7 @@ public class ProductDaoImpl implements ProductDao{
     }
 
     @Override
-    public Optional<Product> getProduct(int id) throws DaoException {
+    public Product getProduct(int id) throws DaoException {
         Connection connection = null;
 
         PreparedStatement statement;
@@ -154,7 +156,7 @@ public class ProductDaoImpl implements ProductDao{
                         .build();
             }
 
-            return Optional.ofNullable(product);
+            return product;
         }catch (Exception exception){
             throw new DaoException("in ProductDaoImpl: in getProductList(ProductFilter) while getting prepared statement", exception);
         }finally {
@@ -176,7 +178,7 @@ public class ProductDaoImpl implements ProductDao{
             throw new DaoException("in ProductDaoImpl: in getProductList(ProductFilter) while getting connection from connection pool", exception);
         }
         try {
-            statement = connection.prepareStatement(getSelectConditionSQL(SQL_GET_PAGE_QUANTITY, productFilter));
+            statement = connection.prepareStatement(getSelectConditionSQL(SQL_SELECT_MULTIPLE_ITEMS, productFilter));
 
             setSelectParams(statement, productFilter, pageSize, pageNumber);
 
@@ -214,15 +216,13 @@ public class ProductDaoImpl implements ProductDao{
             throw new DaoException("in ProductDaoImpl: in getProductList(ProductFilter) while getting connection from connection pool", exception);
         }
         try {
-            statement = connection.prepareStatement(getSelectConditionSQL(SQL_GET_PAGE_QUANTITY, productFilter));
-
-            setFilterSelectParams(statement, productFilter);
+            statement = connection.prepareStatement(SQL_GET_PAGE_QUANTITY);
 
             resultSet = statement.executeQuery();
 
             if(resultSet.next()){
                 result = resultSet.getInt(1);
-                result = result / pageSize + (result % pageSize)%1;
+                result = (int) Math.ceil((float)result / pageSize);
             }
         }catch (Exception exception){
             throw new DaoException("in ProductDaoImpl: in getProductList(ProductFilter) while getting prepared statement", exception);
@@ -279,8 +279,8 @@ public class ProductDaoImpl implements ProductDao{
 
     private PreparedStatement setSelectParams(final PreparedStatement preparedStatement, final ProductFilter productFilter, int pageSize, int pageNumber)throws Exception{
         int counter = setFilterSelectParams(preparedStatement, productFilter);
-        preparedStatement.setInt(counter++, pageSize);
         preparedStatement.setInt(counter++, pageSize * (pageNumber-1));
+        preparedStatement.setInt(counter++, pageSize);
         return preparedStatement;
     }
     private int setFilterSelectParams(final PreparedStatement preparedStatement, final ProductFilter productFilter) throws SQLException {

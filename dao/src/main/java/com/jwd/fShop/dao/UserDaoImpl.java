@@ -8,22 +8,38 @@ import com.jwd.fShop.dao.exception.DaoException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 public class UserDaoImpl implements UserDao {
     Map<Integer, String> roleMap = new HashMap<>();
+
+    private static final String USER_ID_DATABASE_NAME = "ID";
+    private static final String USER_USERNAME_DATABASE_NAME = "userName";
+    private static final String USER_PASSWORD_HASH_DATABASE_NAME = "PasswordHash";
+    private static final String USER_REGISTRATION_DATE_DATABASE_NAME = "registrationDate";
+    private static final String USER_REGISTRATION_TIME_DATABASE_NAME = "registrationTime";
+    private static final String USER_ROLE_DATABASE_NAME = "Role_ID";
 
     private static int PRODUCT_FIELDS_QUANTITY = 5;
     private final String SQL_INSERT_SINGLE_ITEM = "INSERT INTO usersTable (userName, PasswordHash, Role_id, registrationDate, registrationTime) Values (?, ?, ?, ?, ?)";
     private static final String SQL_ITEM = "(?, ?, ?, ?, ?)";
     private static final String SQL_DELETE_ITEM = "DELETE FROM usersTable WHERE id = ?;";
     private static final String SQL_SELECT_MULTIPLE_ITEMS = "SELECT ID, userName, PasswordHash, Role_ID, registrationDate, registrationTime FROM usersTable"; //+FILTER_STR+LIMIT_STR
-    private static final String SQL_SELECT_SINGLE_SELECT = "SELECT ID, userName, PasswordHash, Role_ID, registrationDate, registrationTime FROM usersTable WHERE userName LIKE ?;";
+    private static final String SQL_SELECT_SINGLE_USER = "SELECT ID, userName, Role_ID, registrationDate, registrationTime FROM usersTable WHERE "
+            + USER_USERNAME_DATABASE_NAME
+            + " LIKE ? AND "
+            + USER_PASSWORD_HASH_DATABASE_NAME
+            + " LIKE ?;";
     private static final String SQL_SELECT_LIMIT = "LIMIT ?, ?";
     private static final String SQL_UPDATE_ITEM_BY_ID = "UPDATE usersTable SET (UserName = '?', PasswordHash = ?, Role_ID = '?', registrationDate = ?, registrationTime = '?') WHERE id=?;";
+
+
 
     private ConnectionPool connectionPool;
 
@@ -32,66 +48,58 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public boolean setUser(User user) throws DaoException {
+    public User setUser(User user) throws DaoException {
         Connection connection;
         PreparedStatement statement;
-        boolean result;
+        User result = null;
+
         if (nonNull(user)) {
             try {
                 connection = connectionPool.getConnection();
-            } catch (Exception exception) {
-                throw new DaoException("in ProductDaoImpl: in setUser(User) while getting connection from connection pool", exception);
-            }
-            try {
+
                 statement = connection.prepareStatement(SQL_INSERT_SINGLE_ITEM);
-            } catch (Exception exception) {
-                throw new DaoException("in ProductDaoImpl: in setUser(User) while getting prepared statement", exception);
-            }
-            try {
+
                 statement.setString(1, user.getUserName());
                 statement.setString(2, user.getHashPass());
                 statement.setInt(3, user.getRole());
                 statement.setDate(4, user.getRegistrationDate());
                 statement.setTime(5, user.getRegistrationTime());
 
-                result = statement.executeUpdate() == 0 ? false : true;
+                if (statement.executeUpdate() != 0) {
+                    result = new User.Builder()
+                            .setUserName(user.getUserName())
+                            .setRole(user.getRole())
+                            .build();
+                }
             } catch (Exception exception) {
-                throw new DaoException("in ProductDaoImpl: in setUser(User) while setting prepared statement parameters", exception);
-            } finally {
-                connectionPool.retrieveConnection(connection);
+                throw new DaoException("in ProductDaoImpl: in setUser(User) while getting connection from connection pool", exception);
             }
-            return result;
         }
-        return false;
+        return result;
     }
 
     @Override
-    public User getUser(final String userName) throws DaoException {
-        Connection connection;
-        User user = null;
+    public User getUser(final User user) throws DaoException {
+        Connection connection = null;
+        User resultUser = null;
         PreparedStatement statement;
         ResultSet resultSet;
 
+        validateUser(user);
+
         try {
             connection = connectionPool.getConnection();
-        } catch (Exception exception) {
-            throw new DaoException("in ProductDaoImpl: in getUser(String) while getting connection from connection pool", exception);
-        }
-        try {
-            statement = connection.prepareStatement(SQL_SELECT_SINGLE_SELECT);
 
-            statement.setString(1, userName);
-
+            statement = connection.prepareStatement(SQL_SELECT_SINGLE_USER);
+            statement.setString(1, user.getUserName());
+            statement.setString(2, user.getHashPass());
             resultSet = statement.executeQuery();
 
             if (resultSet.next()) {
-                user = new User.Builder()
-                        .setId(resultSet.getInt("ID"))
-                        .setUserName(resultSet.getNString("userName"))
-                        .setHashPass(resultSet.getString("PasswordHash"))
-                        .setRegistrationDate(resultSet.getDate("registrationDate"))
-                        .setRegistrationTime(resultSet.getTime("registrationTime"))
-                        .setRole(resultSet.getInt("Role_ID"))
+                resultUser = new User.Builder()
+                        .setId(resultSet.getInt(USER_ID_DATABASE_NAME))
+                        .setUserName(resultSet.getNString(USER_USERNAME_DATABASE_NAME))
+                        .setRole(resultSet.getInt(USER_ROLE_DATABASE_NAME))
                         .build();
             }
         } catch (Exception exception) {
@@ -100,7 +108,7 @@ public class UserDaoImpl implements UserDao {
             connectionPool.retrieveConnection(connection);
         }
 
-        return user;
+        return resultUser;
     }
 
     @Override
@@ -125,12 +133,12 @@ public class UserDaoImpl implements UserDao {
 
             while (resultSet.next()) {
                 users.add(new User.Builder()
-                        .setId(resultSet.getInt("ID"))
-                        .setUserName(resultSet.getNString("userName"))
-                        .setHashPass(resultSet.getString("PasswordHash"))
-                        .setRegistrationDate(resultSet.getDate("registrationDate"))
-                        .setRegistrationTime(resultSet.getTime("registrationTime"))
-                        .setRole(resultSet.getInt("Role_ID"))
+                        .setId(resultSet.getInt(USER_ID_DATABASE_NAME))
+                        .setUserName(resultSet.getNString(USER_USERNAME_DATABASE_NAME))
+                        .setHashPass(resultSet.getString(USER_PASSWORD_HASH_DATABASE_NAME))
+                        .setRegistrationDate(resultSet.getDate(USER_REGISTRATION_DATE_DATABASE_NAME))
+                        .setRegistrationTime(resultSet.getTime(USER_REGISTRATION_TIME_DATABASE_NAME))
+                        .setRole(resultSet.getInt(USER_ROLE_DATABASE_NAME))
                         .build());
             }
         } catch (Exception exception) {
@@ -278,6 +286,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     // todo export to abstract class for example
+
     protected void closeAutoCloseable(AutoCloseable... autoCloseables) {
         for (AutoCloseable autoCloseable : autoCloseables) {
             if (nonNull(autoCloseable)) {
@@ -290,7 +299,16 @@ public class UserDaoImpl implements UserDao {
         }
     }
 
-    private boolean isSuccessfulResult(int result) throws SQLException {
+    private boolean isSuccessfulResult(int result) {
         return result != 0;
+    }
+
+    void validateUser(final User user) throws DaoException {
+        if (isNull(user)) {
+            throw new DaoException("Invalid user.");
+        }
+        if(isNull(user.getUserName())){
+            throw new DaoException("Invalid user.");
+        }
     }
 }

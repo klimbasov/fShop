@@ -7,79 +7,85 @@ function buildProductTable(tableDiv, navigationDiv, pageNum){
         dataType: "json",
         url: urlCommand + pageNum.toString(),
     }).done(function(data){
+        let pageQuantity = parseInt(data[0]);
+        data.shift();
         _buildList(tableDiv, data);
-        buildNavigation(navigationDiv, pageNum, '${pageQuantity}');
+        buildNavigation(tableDiv, navigationDiv, pageNum,pageQuantity);
     });
 }
 
-function buildNavigation(nodeId, pageNum, pageQuantity, command){
-    let navigationNav = $("<nav></nav>");
-    let navigationUl = $("<ul></ul>");
+function buildNavigation(tableNodeId, nodeId, pageNum, pageQuantity){
+    let navigationDiv = $("<div class='barStyle'></div>");
+    let navigationNav = $("<nav class='barStyle'></nav>");
+    let navigationUl = $("<ul class='barStyle'></ul>");
 
-    navigationUl.append($("<li></li>").append(createNavigateButton("<<", command, 1)));
-    navigationUl.append($("<li></li>").append(createNavigateButton("<", command, pageNum > 1 ? pageNum-1 : 1)));
+    navigationUl.append($("<li></li>").append(createNavigateButton("<<", createCommand(tableNodeId, nodeId, 1), 1)));
+    navigationUl.append($("<li></li>").append(createNavigateButton("<", createCommand(tableNodeId, nodeId, pageNum > 1 ? pageNum-1 : 1), pageNum > 1 ? pageNum-1 : 1)));
 
     if(pageQuantity > 7){
         if(pageNum < 5){
             let counter;
             for (counter = 1; counter <= 7; counter++){
-                navigationUl.append($("<li></li>").append(createNavigateButton(counter.toString(), command, counter)));
+                navigationUl.append($("<li></li>").append(createNavigateButton(counter.toString(), createCommand(tableNodeId, nodeId, counter), counter)));
             }
             let delimiterButton = createNavigateButton("...", "", 0);
             delimiterButton.disabled = true;
             navigationUl.append($("<li></li>").append(delimiterButton));
-            navigationUl.append($("<li></li>").append(createNavigateButton(pageQuantity.toString(), command, pageQuantity)));
+            navigationUl.append($("<li></li>").append(createNavigateButton(pageQuantity.toString(), createCommand(tableNodeId, nodeId, pageQuantity), pageQuantity)));
         }else
         if(pageNum > pageQuantity - 4){
-            navigationUl.append($("<li></li>").append(createNavigateButton("1", command, 1)));
+            navigationUl.append($("<li></li>").append(createNavigateButton("1", createCommand(tableNodeId, nodeId, 1), 1)));
             let delimiterButton = createNavigateButton("...", "", 0);
             delimiterButton.disabled = true;
             navigationUl.append($("<li></li>").append(delimiterButton));
             let counter;
             for (counter = pageQuantity - 4; counter <= pageQuantity; counter++){
-                navigationUl.append($("<li></li>").append(createNavigateButton(counter.toString(), command, counter)));
+                navigationUl.append($("<li></li>").append(createNavigateButton(counter.toString(), createCommand(tableNodeId, nodeId, counter), counter)));
             }
         }else {
-            navigationUl.append($("<li></li>").append(createNavigateButton("1", command, 1)));
+            navigationUl.append($("<li></li>").append(createNavigateButton("1", createCommand(tableNodeId, nodeId, 1), 1)));
             let delimiterButton = createNavigateButton("...", "", 0);
             delimiterButton.disabled = true;
             navigationUl.append($("<li></li>").append(delimiterButton));
             let counter;
             for (counter = pageNum - 2; counter <= pageNum + 2; counter++){
-                navigationUl.append($("<li></li>").append(createNavigateButton(counter.toString(), command, counter)));
+                navigationUl.append($("<li></li>").append(createNavigateButton(counter.toString(), createCommand(tableNodeId, nodeId, counter), counter)));
             }
             delimiterButton = createNavigateButton("...", "", 0);
             delimiterButton.disabled = true;
             navigationUl.append($("<li></li>").append(delimiterButton));
-            navigationUl.append($("<li></li>").append(createNavigateButton(pageQuantity.toString(), command, pageQuantity)));
+            navigationUl.append($("<li></li>").append(createNavigateButton(pageQuantity.toString(), createCommand(tableNodeId, nodeId, pageQuantity), pageQuantity)));
         }
     }else{
         let counter;
         for (counter = 1; counter <= pageQuantity; counter++){
-            navigationUl.append($("<li></li>").append(createNavigateButton(counter.toString(), command, counter)));
+            navigationUl.append($("<li></li>").append(createNavigateButton(counter.toString(), createCommand(tableNodeId, nodeId, counter), counter)));
         }
     }
-    navigationUl.append($("<li></li>").append(createNavigateButton(">", command, pageNum < pageQuantity ? pageNum + 1 : pageQuantity)));
-    navigationUl.append($("<li></li>").append(createNavigateButton(">>", command, pageQuantity)));
+    navigationUl.append($("<li></li>").append(createNavigateButton(">", createCommand(tableNodeId, nodeId, pageNum < pageQuantity ? pageNum + 1 : pageQuantity), pageNum < pageQuantity ? pageNum + 1 : pageQuantity)));
+    navigationUl.append($("<li></li>").append(createNavigateButton(">>", createCommand(tableNodeId, nodeId, pageQuantity), pageQuantity)));
 
     navigationNav.append(navigationUl);
-    $("#" + nodeId).append(navigationNav);
+    navigationDiv.append(navigationNav)
+    $("#" + nodeId).append(navigationUl);
 }
 
 function createNavigateButton(text, command, pageNum){
     let form = $("<form></form>");
-    let commandInput = $("<input type='hidden' id='command' name='command'>");
-    let pageNumInput = $("<input type='hidden' id='pageNum' name='pageNum'>");
-    commandInput.attr('value', command);
-    pageNumInput.attr('value', pageNum);
+    // let commandInput = $("<input type='hidden' id='command' name='command'>");
+    // let pageNumInput = $("<input type='hidden' id='pageNum' name='pageNum'>");
+    // commandInput.attr('value', command);
+    // pageNumInput.attr('value', pageNum);
 
-    let buttonInput = $("<button type='submit'></button>");
-    buttonInput.attr('content', text);
-    form.append(commandInput, pageNumInput, buttonInput);
+    let buttonInput = $("<button type='button'>" + text + "</button>");
+    buttonInput.attr('onclick', command);
+    form.append(buttonInput);
     return form;
 
 }
-
+ function createCommand(node_1, node_2, pageNum) {
+     return "buildProductTable(" + node_1 + ", " + node_2 + ", " + pageNum + ")";
+ }
 function buildList(listDiv, navigateDiv, data){
     let jsonList = data;
     let product_list = $("<ul></ul>");

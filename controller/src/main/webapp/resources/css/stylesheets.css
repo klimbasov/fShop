@@ -49,7 +49,6 @@ h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight: 400;}
     transition: .5s linear;
     position: relative;
 }
-
 .barStyle nav{
     display: block;
     width: 100%;
@@ -76,7 +75,6 @@ h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight: 400;}
     font-family: 'Lora', serif;
     transition: .5s linear;
 }
-
 .barStyle button[type=submit]:hover{
     background: #096c0c;
 }
@@ -184,7 +182,6 @@ h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight: 400;}
     padding: 0px 10px;
     margin: 10px 0px;
 }
-
 .product_info.action_list ul{
     display: block;
     width: 100%;
@@ -199,7 +196,6 @@ h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight: 400;}
     font-family: 'Lora', serif;
     font-size: 21px;
 }
-
 .product_info.action_list button[type=submit]{
     background-color: #557534; /* Green */
     border: none;
@@ -213,7 +209,6 @@ h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight: 400;}
     font-family: 'Lora', serif;
     transition: .5s linear;
 }
-
 .product_info.action_list button[type=submit]:hover{
     background: #096c0c;
 }
@@ -280,7 +275,6 @@ h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight: 400;}
     font-family: 'Lora', serif;
     transition: .5s linear;
 }
-
 .registration button[type=submit]:hover{
     background: #096c0c;
 }
@@ -298,7 +292,6 @@ h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight: 400;}
     transition: .5s linear;
     position: relative;
 }
-
 .search nav{
     display: block;
     width: 100%;
@@ -327,11 +320,9 @@ h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight: 400;}
     font-family: 'Lora', serif;
     transition: .2s linear;
 }
-
 .search button:hover{
     background: #c0c0aa;
 }
-
 .search input[type=text]{
     background-color: #d8d7b8;
     border: 2px solid #656556;

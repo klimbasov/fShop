@@ -6,9 +6,11 @@ import com.jwd.fShop.controller.command.Role;
 import com.jwd.fShop.controller.exception.CommandException;
 import com.jwd.fShop.controller.exception.InvalidSessionException;
 import com.jwd.fShop.controller.validator.Validator.Validator;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static com.jwd.fShop.controller.constant.Parameters.*;
+import static com.jwd.fShop.controller.constant.Attributes.*;
 
 public abstract class AbstractCommand {
     protected Validator validator;

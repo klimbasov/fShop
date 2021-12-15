@@ -16,4 +16,8 @@ public interface UserService {
     List<User> getUsers(final UserFilter userFilter) throws ServiceException;
 
     int deleteUsers(final List<Integer> userList) throws ServiceException;
+
+    User registerUser(final User user) throws ServiceException;
+
+    User authorizeUser(final User user) throws ServiceException;
 }

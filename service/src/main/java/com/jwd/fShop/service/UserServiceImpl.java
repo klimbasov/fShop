@@ -3,17 +3,13 @@ package com.jwd.fShop.service;
 import com.jwd.fShop.dao.DaoFactory;
 import com.jwd.fShop.dao.UserDao;
 import com.jwd.fShop.dao.exception.DaoException;
-import com.jwd.fShop.dao.exception.FatalDaoException;
 import com.jwd.fShop.service.domain.User;
 import com.jwd.fShop.service.domain.UserFilter;
-import com.jwd.fShop.service.exception.FatalServiceException;
 import com.jwd.fShop.service.exception.ServiceException;
 
-import javax.jws.soap.SOAPBinding;
-import java.io.Closeable;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+
+import static java.util.Objects.nonNull;
 
 public class UserServiceImpl implements UserService {
     private final UserDao userDao;
@@ -37,7 +33,7 @@ public class UserServiceImpl implements UserService {
                     .setRole(user.getRole())
                     .build();
 
-            boolean result = Objects.isNull(userDao.getUser(daoUser.getUserName()));
+            boolean result = Objects.isNull(userDao.getUser(daoUser));
 
             if (result) {
                 userDao.setUser(daoUser);
@@ -56,8 +52,7 @@ public class UserServiceImpl implements UserService {
                 .setSubHashPass(hashPass)
                 .build();
         try {
-            com.jwd.fShop.dao.domain.User daoUser = userDao.getUser(userName); // todo! pass daoUserFilter
-            return Objects.nonNull(daoUser) && daoUser.getHashPass().equals(hashPass);
+            return userDao.hasSuchUser(daoUserFilter);
         } catch (DaoException exception) {
             throw new ServiceException("in " + this.getClass().getName() + " in getUsers(UserFilter) while getting users from dao", exception);
         }
@@ -66,16 +61,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUser(String userName) throws ServiceException {
-        User user = null;
-        if (Objects.nonNull(userName)) {
+        User user = new User.Builder()
+                .setUserName(userName)
+                .build();
+        User resultUser = null;
+        if (nonNull(userName)) {
             try {
-                com.jwd.fShop.dao.domain.User daoUser = userDao.getUser(userName);
-                user = convertUser(daoUser);
+                com.jwd.fShop.dao.domain.User daoUser = userDao.getUser(convertUserToDaoUser(user));
+                resultUser = convertDaoUserToUser(daoUser);
             } catch (DaoException exception) {
                 throw new ServiceException("in UserServiceImpl: in getUser(String) while getting user from dao", exception);
             }
         }
-        return user;
+        return resultUser;
     }
 
     @Override
@@ -99,7 +97,7 @@ public class UserServiceImpl implements UserService {
     public int deleteUsers(List<Integer> userList) throws ServiceException {
         int result = 0;
         LinkedList<com.jwd.fShop.dao.domain.User> daoUsers = new LinkedList<>();
-        if (Objects.nonNull(userList)) {
+        if (nonNull(userList)) {
             try {
                 result = userDao.deleteUsers(userList);
             } catch (DaoException exception) {
@@ -109,15 +107,47 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
+    @Override
+    public User registerUser(User user) throws ServiceException {
+        User approvedUser = null;
+        if (nonNull(user)) {
+            try {
+                com.jwd.fShop.dao.domain.User daoUser = userDao.getUser(convertUserToDaoUser(user));
+                if (Objects.isNull(daoUser)) {
+                    approvedUser = convertDaoUserToUser(userDao.setUser(convertUserToDaoUser(user)));
+                }
+            } catch (DaoException exception) {
+                throw new ServiceException("in UserServiceImpl: in getUser(String) while getting user from dao", exception);
+            }
+        }
+        return approvedUser;
+    }
+
+    @Override
+    public User authorizeUser(User user) throws ServiceException {
+        User approvedUser = null;
+        if (nonNull(user)) {
+            try {
+                com.jwd.fShop.dao.domain.User daoUser = userDao.getUser(convertUserToDaoUser(user));
+                if (nonNull(daoUser)) {
+                    approvedUser = convertDaoUserToUser(daoUser);
+                }
+            } catch (DaoException exception) {
+                throw new ServiceException("in UserServiceImpl: in getUser(String) while getting user from dao", exception);
+            }
+        }
+        return approvedUser;
+    }
+
     private boolean validate(User user) {
         boolean result = false;
-        if (Objects.nonNull(user)) {
+        if (nonNull(user)) {
             String name = user.getUserName();
             String hashPass = user.getHashPass();
-            if (Objects.nonNull(name)
-                    && Objects.nonNull(hashPass)
-                    && Objects.nonNull(user.getRegistrationDate())
-                    && Objects.nonNull(user.getRegistrationTime())) {
+            if (nonNull(name)
+                    && nonNull(hashPass)
+                    && nonNull(user.getRegistrationDate())
+                    && nonNull(user.getRegistrationTime())) {
                 result = true;
             }
         }
@@ -138,11 +168,21 @@ public class UserServiceImpl implements UserService {
 
     private void convertUsers(LinkedList<User> users, LinkedList<com.jwd.fShop.dao.domain.User> daoUsers) {
         for (com.jwd.fShop.dao.domain.User daoUser : daoUsers) {
-            users.add(convertUser(daoUser));
+            users.add(convertDaoUserToUser(daoUser));
         }
     }
 
-    private User convertUser(com.jwd.fShop.dao.domain.User daoUser) {
+    private List<User> convertDaoUsersListToUsersList(final List<com.jwd.fShop.dao.domain.User> daoUserList) {
+        List<User> userList = new ArrayList<>();
+        if (nonNull(daoUserList)) {
+            for (com.jwd.fShop.dao.domain.User daoUser : daoUserList) {
+                userList.add(convertDaoUserToUser(daoUser));
+            }
+        }
+        return userList;
+    }
+
+    private User convertDaoUserToUser(com.jwd.fShop.dao.domain.User daoUser) {
         return new User.Builder()
                 .setId(daoUser.getId())
                 .setUserName(daoUser.getUserName())
@@ -150,6 +190,17 @@ public class UserServiceImpl implements UserService {
                 .setRegistrationDate(daoUser.getRegistrationDate())
                 .setRegistrationTime(daoUser.getRegistrationTime())
                 .setRole(daoUser.getRole())
+                .build();
+    }
+
+    private com.jwd.fShop.dao.domain.User convertUserToDaoUser(User user) {
+        return new com.jwd.fShop.dao.domain.User.Builder()
+                .setId(user.getId())
+                .setUserName(user.getUserName())
+                .setHashPass(user.getHashPass())
+                .setRegistrationDate(user.getRegistrationDate())
+                .setRegistrationTime(user.getRegistrationTime())
+                .setRole(user.getRole())
                 .build();
     }
 }

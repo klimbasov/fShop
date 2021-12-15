@@ -14,6 +14,8 @@ import java.io.PrintWriter;
 import java.util.Objects;
 import java.util.Optional;
 
+import static java.util.Objects.nonNull;
+
 public class GetProductCommand extends AbstractCommand implements Command {
 
     private final ProductService productService = ServiceFactory.getInstance().getProductService();
@@ -29,9 +31,9 @@ public class GetProductCommand extends AbstractCommand implements Command {
         PrintWriter out;
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            Optional<Product> productOptional = productService.getProduct(productId);
-            if (productOptional.isPresent()) {
-                jsonProductList = objectMapper.writeValueAsString(productOptional.get());
+            Product productOptional = productService.getProduct(productId);
+            if (nonNull(productOptional)) {
+                jsonProductList = objectMapper.writeValueAsString(productOptional);
                 out = resp.getWriter();
                 resp.setContentType("application/json");
                 resp.setCharacterEncoding("UTF-8");
